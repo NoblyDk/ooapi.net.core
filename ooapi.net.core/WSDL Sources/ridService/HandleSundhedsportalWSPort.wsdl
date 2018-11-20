@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://localhost/" xmlns:soap12enc="http://www.w3.org/2003/05/soap-encoding" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:wsr="http://www.openuri.org/2002/10/soap/reliability/" xmlns:conv="http://www.openuri.org/2002/04/wsdl/conversation/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://localhost/" xmlns="http://schemas.xmlsoap.org/wsdl/">
+  <types />
+  <message name="getCPR">
+    <part xmlns:partns="http://www.w3.org/2001/XMLSchema" name="string" type="partns:string" />
+  </message>
+  <message name="getCPRResponse">
+    <part xmlns:partns="http://www.w3.org/2001/XMLSchema" name="result" type="partns:string" />
+  </message>
+  <message name="test" />
+  <message name="testResponse" />
+  <portType name="HandleSundhedsportalWSPort">
+    <operation name="getCPR">
+      <input message="tns:getCPR" />
+      <output message="tns:getCPRResponse" />
+    </operation>
+    <operation name="test">
+      <input message="tns:test" />
+      <output message="tns:testResponse" />
+    </operation>
+  </portType>
+  <binding name="HandleSundhedsportalWSPort" type="tns:HandleSundhedsportalWSPort">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="rpc" />
+    <operation name="getCPR">
+      <soap:operation soapAction="" style="rpc" />
+      <input>
+        <soap:body use="encoded" namespace="http://localhost/" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </input>
+      <output>
+        <soap:body use="encoded" namespace="http://localhost/" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </output>
+    </operation>
+    <operation name="test">
+      <soap:operation soapAction="" style="rpc" />
+      <input>
+        <soap:body use="encoded" namespace="http://localhost/" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </input>
+      <output>
+        <soap:body use="encoded" namespace="http://localhost/" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />
+      </output>
+    </operation>
+  </binding>
+  <service name="HandleSundhedsportalWS">
+    <port name="HandleSundhedsportalWSPort" binding="tns:HandleSundhedsportalWSPort">
+      <soap:address location="http://ws-erhverv.pp.certifikat.dk/rid_serviceprovider_server/services/HandleSundhedsportalWSPort" />
+    </port>
+  </service>
+</definitions>
