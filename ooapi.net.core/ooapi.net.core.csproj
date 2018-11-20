@@ -4,9 +4,14 @@
     <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Paw Madsen</Authors>
-    <Version>1.3.2</Version>
+    <Version>1.3.3</Version>
     <Description>NemId implementation done in .NET Standard with async/await Tasks.</Description>
     <Company>Nobly Aps</Company>
+    <RepositoryUrl>https://github.com/NoblyDk/ooapi.net.core</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/NoblyDk/ooapi.net.core</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/NoblyDk/ooapi.net.core</PackageLicenseUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageTags>NemId</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
