@@ -24,21 +24,22 @@
 */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using org.openoces.ooapi.pidservice.impl;
 using org.openoces.ooapi.utils;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
-using System.ServiceModel.Description;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ooapi.net.core.ooapi.pidservice;
+using ooapi.net.core.ooapi.utils;
 
 namespace org.openoces.ooapi.pidservice
 {
+
+
     public class PidService : IPidService
     {
 
@@ -57,11 +58,12 @@ namespace org.openoces.ooapi.pidservice
 
             _logger.LogDebug("Creating PID service for: {0}", _clientConfiguration.WsUrl);
 
-            var b = new BasicHttpsBinding();
 
-            b.Security.Mode = BasicHttpsSecurityMode.Transport;
+            var b = new CustomHttpBinding();
+            
+            
             b.Security.Transport.ClientCredentialType = HttpClientCredentialType.Certificate;
-
+            
             b.CloseTimeout = TimeSpan.FromMinutes(1);
             b.OpenTimeout = TimeSpan.FromMinutes(1);
             b.ReceiveTimeout  =TimeSpan.FromMinutes(10);
@@ -72,18 +74,20 @@ namespace org.openoces.ooapi.pidservice
             b.MaxBufferPoolSize = 524288;
             b.MaxReceivedMessageSize = 65536;
             b.TextEncoding = Encoding.UTF8;
-            b.TransferMode = TransferMode.Buffered;
+            b.TransferMode = TransferMode.StreamedRequest;
             b.UseDefaultWebProxy = true;
             b.ReaderQuotas.MaxDepth = 32;
             b.ReaderQuotas.MaxStringContentLength = 8192;
             b.ReaderQuotas.MaxArrayLength = 16384;
             b.ReaderQuotas.MaxNameTableCharCount = 16384;
-            
 
-           
-            _client = new pidwsdocPortClient(b, new EndpointAddress(_clientConfiguration.WsUrl));
-        
+            var e = new EndpointAddress(_clientConfiguration.WsUrl);
+         
+            _client = new pidwsdocPortClient(b, e);
+
+
             _client.ClientCredentials.ClientCertificate.Certificate = new X509Certificate2(_clientConfiguration.PfxFile, _clientConfiguration.PfxPassword);
+
         }
         public async Task TestAsync()
         {
@@ -91,12 +95,27 @@ namespace org.openoces.ooapi.pidservice
         }
         public async Task TestAsync(string serviceUrl)
         {
-            _client.Endpoint.Address = new EndpointAddress(serviceUrl);
-            
-            await _client.testAsync();
-            _client.Endpoint.Address = new EndpointAddress(_clientConfiguration.WsUrl);
-        }
+            //var content = new StringContent("soapString", Encoding.UTF8, "text/xml");
+            //var _clientHandler = new HttpClientHandler();
+            //_clientHandler.ClientCertificates.Add(new X509Certificate2(_clientConfiguration.PfxFile, _clientConfiguration.PfxPassword));
+            //_clientHandler.ClientCertificateOptions = ClientCertificateOption.Manual;
+            //using (var httpClient = new System.Net.Http.HttpClient(_clientHandler)
+            //{
+                
+            //})
+            //{
+            //    var response = await httpClient.PostAsync("https://pidws.pp.certifikat.dk/pid_serviceprovider_server/pidxml/", content);
+            //    var code = response.StatusCode;
+            //    var result = await response.Content.ReadAsStringAsync();
+            //}
 
+            //_client.Endpoint.Address = new EndpointAddress(serviceUrl);
+            //_client.Endpoint.EndpointBehaviors.Add(new SimpleEndpointBehavior());
+            await _client.testAsync();
+            //_client.Endpoint.Address = new EndpointAddress(_clientConfiguration.WsUrl);
+            
+        }
+       
         public Task<int> TestConnectionAsync(int value)
         {
             return _client.testConnectionAsync(value);
@@ -174,4 +193,6 @@ namespace org.openoces.ooapi.pidservice
             throw new PidServiceException(statusCode, statusTextUK, statusTextDK);
         }
     }
+
+   
 }

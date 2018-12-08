@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ooapi.net.core.ooapi.pidservice;
 using org.openoces.ooapi.utils;
+using ooapi.net.core.ooapi.utils;
 
 namespace org.openoces.ooapi.ridservice
 {
@@ -28,9 +29,8 @@ namespace org.openoces.ooapi.ridservice
             _clientConfiguration = clientConfiguration;
             _environmentUtil.EnableProtocolIfSupportedByPlatform(_environmentUtil.TLS12).GetAwaiter().GetResult();
 
-            var b = new BasicHttpBinding();
-
-            b.Security.Mode = BasicHttpSecurityMode.Transport;
+            var b = new CustomHttpBinding();
+            
             b.Security.Transport.ClientCredentialType = HttpClientCredentialType.Certificate;
 
             b.CloseTimeout = TimeSpan.FromMinutes(1);
