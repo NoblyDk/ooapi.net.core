@@ -2,6 +2,11 @@
 NemID Implementation done with dotnet standard and async/await Task.
 
 
+Version 2.0.0
+
+Changed the HttpsBinding to a custom one, to fix the ExpectContinue (Http 100 Continue) error on .NET Core framework. the package should now work on .NET Core
+
+Pre-Version 2.0.0 ->
 
 OBS:
 Does not work in DotNetCore 2.1 - See Issue https://github.com/dotnet/wcf/issues/3048
