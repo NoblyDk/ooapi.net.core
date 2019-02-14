@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Paw Madsen</Authors>
-    <Version>2.0.0</Version>
+    <Version>2.1.0</Version>
     <Description>NemId implementation done in .NET Standard with async/await Tasks.</Description>
     <Company>Nobly Aps</Company>
     <RepositoryUrl>https://github.com/NoblyDk/ooapi.net.core</RepositoryUrl>
@@ -12,8 +12,7 @@
     <PackageLicenseUrl>https://github.com/NoblyDk/ooapi.net.core</PackageLicenseUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageTags>NemId</PackageTags>
-    <PackageReleaseNotes>PID and RID Service should now work on .NET Core.
-BREAKING: removed .NET Framework 472 target</PackageReleaseNotes>
+    <PackageReleaseNotes>Added more ways to get certificate, from file or bytes.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

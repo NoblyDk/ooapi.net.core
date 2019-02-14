@@ -10,5 +10,7 @@ namespace org.openoces.ooapi.web
         Task SetAdditionalParameter(string key, string value);
         Task SetAdditionalParameter(string key, string value, Boolean base64Encode);
         Task<string> GenerateParameters(string pfxFile, string pfxPassword);
+        Task<string> GenerateParameters(byte[] pfxBytes, string pfxPassword);
+        Task<string> GenerateParameters(byte[] pfxBytes);
     }
 }

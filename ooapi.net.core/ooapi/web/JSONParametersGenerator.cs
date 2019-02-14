@@ -104,7 +104,56 @@ namespace org.openoces.ooapi.web
 
             return JsonConvert.SerializeObject(_parameters);
         }
+        public async Task<string> GenerateParameters(byte[] pfxBytes, string pfxPassword)
+        {
+            if (_additionalParameters.Any())
+            {
+                string additionalP = "";
+                bool isFirst = true;
+                foreach (var pair in _additionalParameters)
+                {
+                    additionalP += (isFirst ? "" : ";") + pair.Key + "=" + pair.Value;
+                    isFirst = false;
+                }
+                await SetParameter(ADDITIONAL_PARAMS, additionalP, true);
+            }
+            byte[] normalizedParameters = await GetNormalizedParameters();
+            byte[] parameterDigest = await CalculateDigest(normalizedParameters);
+            byte[] parameterSignature = await _signer.CalculateSignatureAsync(normalizedParameters, pfxBytes, pfxPassword);
 
+            string digestString = Convert.ToBase64String(parameterDigest);
+            string signatureString = Convert.ToBase64String(parameterSignature);
+
+            _parameters.Add(DIGEST, digestString);
+            _parameters.Add(SIGNATURE, signatureString);
+
+            return JsonConvert.SerializeObject(_parameters);
+        }
+        public async Task<string> GenerateParameters(byte[] pfxBytes)
+        {
+            if (_additionalParameters.Any())
+            {
+                string additionalP = "";
+                bool isFirst = true;
+                foreach (var pair in _additionalParameters)
+                {
+                    additionalP += (isFirst ? "" : ";") + pair.Key + "=" + pair.Value;
+                    isFirst = false;
+                }
+                await SetParameter(ADDITIONAL_PARAMS, additionalP, true);
+            }
+            byte[] normalizedParameters = await GetNormalizedParameters();
+            byte[] parameterDigest = await CalculateDigest(normalizedParameters);
+            byte[] parameterSignature = await _signer.CalculateSignatureAsync(normalizedParameters, pfxBytes);
+
+            string digestString = Convert.ToBase64String(parameterDigest);
+            string signatureString = Convert.ToBase64String(parameterSignature);
+
+            _parameters.Add(DIGEST, digestString);
+            _parameters.Add(SIGNATURE, signatureString);
+
+            return JsonConvert.SerializeObject(_parameters);
+        }
         private Task<byte[]> CalculateDigest(byte[] data)
         {
             var sha = SHA256.Create();

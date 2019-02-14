@@ -39,23 +39,33 @@ namespace org.openoces.ooapi.web
         public Signer(ILogger<Signer> logger)
         {
             _logger = logger;
-         
+
         }
-        
-        public async Task<string> GetCertificateAsync(string pfxFile, string pfxPassword)
+
+        public Task<string> GetCertificateAsync(string pfxFile, string pfxPassword)
         {
             var certificate = new X509Certificate2(pfxFile, pfxPassword);
-            byte[] encodedCertificate = certificate.Export(X509ContentType.Cert);
-            String base64EncodedCertificate = await Base64EncodeAsync(encodedCertificate);
-            return base64EncodedCertificate.Replace("\r", "").Replace("\n", "");
+            return GetCertificateAsBase64String(certificate);
         }
+        public Task<string> GetCertificateAsync(byte[] pfxBytes, string pfxPassword)
+        {
+            var certificate = new X509Certificate2(pfxBytes, pfxPassword);
+            return GetCertificateAsBase64String(certificate);
+        }
+        public Task<string> GetCertificateAsync(byte[] pfxBytes)
+        {
+            var certificate = new X509Certificate2(pfxBytes);
+            return GetCertificateAsBase64String(certificate);
+        }
+
+
 
         public Task<byte[]> CalculateSignatureAsync(byte[] data, string pfxFile, string pfxPassword)
         {
             try
             {
                 var certificate = new X509Certificate2(pfxFile, pfxPassword);
-                var csp = (RSACryptoServiceProvider) certificate.PrivateKey;
+                var csp = (RSACryptoServiceProvider)certificate.PrivateKey;
                 return Task.FromResult(csp.SignData(data, CryptoConfig.MapNameToOID("SHA256")));
             }
             catch (CryptographicException ce)
@@ -70,10 +80,53 @@ namespace org.openoces.ooapi.web
                 return Task.FromResult(rsa2.SignData(data, "SHA256"));
             }
         }
-
-        private Task<string> Base64EncodeAsync(byte[] bytes)
+        public Task<byte[]> CalculateSignatureAsync(byte[] data, byte[] pfxBytes, string pfxPassword)
         {
-            return Task.FromResult(Convert.ToBase64String(bytes));
+            try
+            {
+                var certificate = new X509Certificate2(pfxBytes, pfxPassword);
+                var csp = (RSACryptoServiceProvider)certificate.PrivateKey;
+                return Task.FromResult(csp.SignData(data, CryptoConfig.MapNameToOID("SHA256")));
+            }
+            catch (CryptographicException ce)
+            {
+                _logger.LogError(ce, "Exception");
+                X509Certificate2 cert = new X509Certificate2(pfxBytes, pfxPassword, X509KeyStorageFlags.Exportable);
+
+                RSACryptoServiceProvider rsa = cert.PrivateKey as RSACryptoServiceProvider;
+                byte[] privateKeyBlob = rsa.ExportCspBlob(true);
+                RSACryptoServiceProvider rsa2 = new RSACryptoServiceProvider();
+                rsa2.ImportCspBlob(privateKeyBlob);
+                return Task.FromResult(rsa2.SignData(data, "SHA256"));
+            }
+        }
+        public Task<byte[]> CalculateSignatureAsync(byte[] data, byte[] pfxBytes)
+        {
+            try
+            {
+                var certificate = new X509Certificate2(pfxBytes);
+                var csp = (RSACryptoServiceProvider)certificate.PrivateKey;
+                return Task.FromResult(csp.SignData(data, CryptoConfig.MapNameToOID("SHA256")));
+            }
+            catch (CryptographicException ce)
+            {
+                _logger.LogError(ce, "Exception");
+                X509Certificate2 cert = new X509Certificate2(pfxBytes, string.Empty, X509KeyStorageFlags.Exportable);
+
+                RSACryptoServiceProvider rsa = cert.PrivateKey as RSACryptoServiceProvider;
+                byte[] privateKeyBlob = rsa.ExportCspBlob(true);
+                RSACryptoServiceProvider rsa2 = new RSACryptoServiceProvider();
+                rsa2.ImportCspBlob(privateKeyBlob);
+                return Task.FromResult(rsa2.SignData(data, "SHA256"));
+            }
+        }
+
+
+        private Task<string> GetCertificateAsBase64String(X509Certificate2 certificate)
+        {
+            byte[] encodedCertificate = certificate.Export(X509ContentType.Cert);
+            String base64EncodedCertificate = Convert.ToBase64String(encodedCertificate);
+            return Task.FromResult(base64EncodedCertificate.Replace("\r", "").Replace("\n", ""));
         }
     }
 }
