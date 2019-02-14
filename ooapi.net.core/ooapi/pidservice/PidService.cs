@@ -85,8 +85,15 @@ namespace org.openoces.ooapi.pidservice
          
             _client = new pidwsdocPortClient(b, e);
 
+            if (!string.IsNullOrWhiteSpace(_clientConfiguration.PfxFile))
+            {
+                _client.ClientCredentials.ClientCertificate.Certificate = new X509Certificate2(_clientConfiguration.PfxFile, _clientConfiguration.PfxPassword);
+            }
+            else
+            {
+                _client.ClientCredentials.ClientCertificate.Certificate = new X509Certificate2(_clientConfiguration.PfxBytes);
+            }
 
-            _client.ClientCredentials.ClientCertificate.Certificate = new X509Certificate2(_clientConfiguration.PfxFile, _clientConfiguration.PfxPassword);
 
         }
         public async Task TestAsync()

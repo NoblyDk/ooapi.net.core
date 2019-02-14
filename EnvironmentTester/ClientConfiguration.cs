@@ -10,5 +10,6 @@ namespace EnvironmentTester
         public string WsUrl { get; set; }
         public string PfxFile { get; set; }
         public string PfxPassword { get; set; }
+        public byte[] PfxBytes { get; set; }
     }
 }

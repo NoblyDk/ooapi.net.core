@@ -51,7 +51,14 @@ namespace org.openoces.ooapi.ridservice
             b.ReaderQuotas.MaxNameTableCharCount = 16384;
             _client = new HandleSundhedsportalWSPortClient(b, new EndpointAddress(_clientConfiguration.WsUrl));
 
-            _client.ClientCredentials.ClientCertificate.Certificate = new X509Certificate2(_clientConfiguration.PfxFile, _clientConfiguration.PfxPassword);
+            if (!string.IsNullOrWhiteSpace(_clientConfiguration.PfxFile))
+            {
+                _client.ClientCredentials.ClientCertificate.Certificate = new X509Certificate2(_clientConfiguration.PfxFile, _clientConfiguration.PfxPassword);
+            }
+            else
+            {
+                _client.ClientCredentials.ClientCertificate.Certificate = new X509Certificate2(_clientConfiguration.PfxBytes);
+            }
         }
 
         //Test RID with moces2 certificates
