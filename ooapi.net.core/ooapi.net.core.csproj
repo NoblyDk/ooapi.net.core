@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Paw Madsen</Authors>
-    <Version>2.2.0</Version>
+    <Version>2.2.1</Version>
     <Description>NemId implementation done in .NET Standard with async/await Tasks.</Description>
     <Company>Nobly Aps</Company>
     <RepositoryUrl>https://github.com/NoblyDk/ooapi.net.core</RepositoryUrl>
@@ -39,4 +39,16 @@
     <WCFMetadata Include="Connected Services" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <!-- Optional: Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <!-- For GitHub -->
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All" />  
+
+  </ItemGroup>
+  
 </Project>
