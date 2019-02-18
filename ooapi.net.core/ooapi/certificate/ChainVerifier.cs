@@ -133,7 +133,7 @@ namespace org.openoces.ooapi.certificate
         private Task<bool> Verify(X509Certificate2 certificate, AsymmetricKeyParameter publicKey)
         {
             try
-            {
+            {               
                 var bcCertificate = new X509CertificateParser().ReadCertificate(certificate.RawData);
                 bcCertificate.Verify(publicKey);
                 return Task.FromResult(true);
@@ -147,6 +147,10 @@ namespace org.openoces.ooapi.certificate
                 //ignore on purpose
             }
             catch (SignatureException)
+            {
+                //ignore on purpose
+            }
+            catch
             {
                 //ignore on purpose
             }
