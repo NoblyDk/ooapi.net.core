@@ -101,8 +101,8 @@ namespace org.openoces.ooapi.signatures
             SHA256 sha256 = SHA256.Create();
             byte[] hashedSignedInfo = sha256.ComputeHash(signedInfoStream);
 
-            string oid = CryptoConfig.MapNameToOID("SHA256");
-            return Csp.VerifyHash(hashedSignedInfo, oid, sigVal);
+            var csp = await GetCsp();
+            return csp.VerifyHash(hashedSignedInfo, sigVal, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         }
 
         public async Task<bool> AreValidReferences()
@@ -150,12 +150,10 @@ namespace org.openoces.ooapi.signatures
             return hashedNode.SequenceEqual(digestValue);
         }
 
-        RSACryptoServiceProvider Csp
+        private async Task<RSA> GetCsp()
         {
-            get
-            {
-               return (RSACryptoServiceProvider)SigningCertificate.ExportCertificate().GetAwaiter().GetResult().PublicKey.Key;
-            }
+            var t = await SigningCertificate.ExportCertificate();
+            return t.GetRSAPublicKey();
         }
 
         public OcesCertificate SigningCertificate

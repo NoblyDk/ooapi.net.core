@@ -65,19 +65,17 @@ namespace org.openoces.ooapi.web
             try
             {
                 var certificate = new X509Certificate2(pfxFile, pfxPassword);
-                var csp = (RSACryptoServiceProvider)certificate.PrivateKey;
-                return Task.FromResult(csp.SignData(data, CryptoConfig.MapNameToOID("SHA256")));
+                var csp = certificate.GetRSAPrivateKey();
+                return Task.FromResult(csp.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
             }
             catch (CryptographicException ce)
             {
                 _logger.LogError(ce, "Exception");
                 X509Certificate2 cert = new X509Certificate2(pfxFile, pfxPassword, X509KeyStorageFlags.Exportable);
 
-                RSACryptoServiceProvider rsa = cert.PrivateKey as RSACryptoServiceProvider;
-                byte[] privateKeyBlob = rsa.ExportCspBlob(true);
-                RSACryptoServiceProvider rsa2 = new RSACryptoServiceProvider();
-                rsa2.ImportCspBlob(privateKeyBlob);
-                return Task.FromResult(rsa2.SignData(data, "SHA256"));
+                var rsa = cert.GetRSAPrivateKey();
+                
+                return Task.FromResult(rsa.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
             }
         }
         public Task<byte[]> CalculateSignatureAsync(byte[] data, byte[] pfxBytes, string pfxPassword)
@@ -85,19 +83,17 @@ namespace org.openoces.ooapi.web
             try
             {
                 var certificate = new X509Certificate2(pfxBytes, pfxPassword);
-                var csp = (RSACryptoServiceProvider)certificate.PrivateKey;
-                return Task.FromResult(csp.SignData(data, CryptoConfig.MapNameToOID("SHA256")));
+                var csp = certificate.GetRSAPrivateKey();
+                return Task.FromResult(csp.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
             }
             catch (CryptographicException ce)
             {
                 _logger.LogError(ce, "Exception");
                 X509Certificate2 cert = new X509Certificate2(pfxBytes, pfxPassword, X509KeyStorageFlags.Exportable);
 
-                RSACryptoServiceProvider rsa = cert.PrivateKey as RSACryptoServiceProvider;
-                byte[] privateKeyBlob = rsa.ExportCspBlob(true);
-                RSACryptoServiceProvider rsa2 = new RSACryptoServiceProvider();
-                rsa2.ImportCspBlob(privateKeyBlob);
-                return Task.FromResult(rsa2.SignData(data, "SHA256"));
+                var rsa = cert.GetRSAPrivateKey(); 
+               
+                return Task.FromResult(rsa.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
             }
         }
         public Task<byte[]> CalculateSignatureAsync(byte[] data, byte[] pfxBytes)
@@ -105,19 +101,17 @@ namespace org.openoces.ooapi.web
             try
             {
                 var certificate = new X509Certificate2(pfxBytes);
-                var csp = (RSACryptoServiceProvider)certificate.PrivateKey;
-                return Task.FromResult(csp.SignData(data, CryptoConfig.MapNameToOID("SHA256")));
+                var csp = certificate.GetRSAPrivateKey();
+                return Task.FromResult(csp.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
             }
             catch (CryptographicException ce)
             {
                 _logger.LogError(ce, "Exception");
                 X509Certificate2 cert = new X509Certificate2(pfxBytes, string.Empty, X509KeyStorageFlags.Exportable);
 
-                RSACryptoServiceProvider rsa = cert.PrivateKey as RSACryptoServiceProvider;
-                byte[] privateKeyBlob = rsa.ExportCspBlob(true);
-                RSACryptoServiceProvider rsa2 = new RSACryptoServiceProvider();
-                rsa2.ImportCspBlob(privateKeyBlob);
-                return Task.FromResult(rsa2.SignData(data, "SHA256"));
+                var rsa = cert.GetRSAPrivateKey();
+               
+                return Task.FromResult(rsa.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
             }
         }
 
