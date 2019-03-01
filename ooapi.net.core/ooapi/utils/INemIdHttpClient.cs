@@ -4,10 +4,8 @@ using System.Threading.Tasks;
 
 namespace org.openoces.ooapi.utils
 {
-    public interface IHttpClient
+    public interface INemIdHttpClient
     {
         Task<byte[]> Download(string location);
-        Task<byte[]> ReadBytesFromUri(Uri uri);
-        Task<byte[]> ReadBytesFromStream(Stream responseStream);
     }
 }

@@ -24,6 +24,7 @@
 */
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using org.openoces.ooapi.certificate;
 using org.openoces.ooapi.utils;
 
@@ -31,18 +32,19 @@ namespace org.openoces.ooapi.signatures
 {
     public class OpensignSignatureFactory : IOpensignSignatureFactory
     {
+        private readonly ILogger<OpensignSignatureFactory> logger;
         private readonly IOcesCertificateFactory _ocesCertificateFactory;
         private readonly IXmlUtil _xmlUtil;
 
-        public OpensignSignatureFactory(IOcesCertificateFactory ocesCertificateFactory, IXmlUtil xmlUtil)
+        public OpensignSignatureFactory(ILogger<OpensignSignatureFactory> logger, IOcesCertificateFactory ocesCertificateFactory, IXmlUtil xmlUtil)
         {
+            this.logger = logger;
             _ocesCertificateFactory = ocesCertificateFactory;
             _xmlUtil = xmlUtil;
         }
         public async Task<OpensignAbstractSignature> GenerateOpensignSignature(string xmlDoc)
         {
-            Console.WriteLine(xmlDoc);
-
+            logger.LogDebug("GenerateOpensignSignature");
             if (xmlDoc == null)
             {
                 throw new NullReferenceException("xmlDoc cannot be null");
@@ -55,6 +57,7 @@ namespace org.openoces.ooapi.signatures
             {
                 return new OpenlogonSignature(xml, _ocesCertificateFactory);
             }
+            logger.LogDebug("Done GenerateOpensignSignature");
             return signature;
         }
     }

@@ -24,6 +24,7 @@
 */
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using org.openoces.ooapi.certificate;
 using org.openoces.ooapi.exceptions;
 
@@ -31,12 +32,14 @@ namespace org.openoces.ooapi.validation
 {
     public class FullCrlRevocationChecker : ICaCrlRevokedChecker
     {
+        private readonly ILogger<FullCrlRevocationChecker> logger;
         private readonly ICrlDistributionPointsExtractor _crlDistributionPointsExtractor;
         private readonly IHttpCrlDownloader _httpCrlDownloader;
         
 
-        public FullCrlRevocationChecker(ICrlDistributionPointsExtractor crlDistributionPointsExtractor, IHttpCrlDownloader httpCrlDownloader)
+        public FullCrlRevocationChecker(ILogger<FullCrlRevocationChecker> logger, ICrlDistributionPointsExtractor crlDistributionPointsExtractor, IHttpCrlDownloader httpCrlDownloader)
         {
+            this.logger = logger;
             _crlDistributionPointsExtractor = crlDistributionPointsExtractor;
             _httpCrlDownloader = httpCrlDownloader;
           
@@ -49,8 +52,11 @@ namespace org.openoces.ooapi.validation
 
         public async Task<bool> IsRevoked(IOcesCertificate certificate)
         {
-            Crl crl = await DownloadCrl(certificate);
-            return await crl.IsRevoked(certificate) || await IsRevoked(certificate.IssuingCa);
+            logger.LogDebug("IsRevoked");
+               Crl crl = await DownloadCrl(certificate);
+            var isRevoked = await crl.IsRevoked(certificate) || await IsRevoked(certificate.IssuingCa);
+            logger.LogDebug("Done IsRevoked");
+            return isRevoked;
         }
 
         public async Task<bool> IsRevoked(Ca ca)
@@ -71,29 +77,41 @@ namespace org.openoces.ooapi.validation
         /// <returns>full CRL for given certificate</returns>
         public async Task<Crl> DownloadCrl(IOcesCertificate certificate)
         {
+            logger.LogDebug("DownloadCrl");
             string crlDistributionPoint = certificate.CrlDistributionPoint;
-            return await DownloadCrl(crlDistributionPoint);
+            var d = await DownloadCrl(crlDistributionPoint);
+            logger.LogDebug("Done DownloadCrl");
+            return d;
         }
 
         public async Task<Crl> DownloadCrl(Ca ca)
         {
+            logger.LogDebug("DownloadCrl");
             var crlDistributionPoints =
                 await _crlDistributionPointsExtractor.ExtractCrlDistributionPointsAsync(ca.Certificate);
-           return await DownloadCrl(crlDistributionPoints.CrlDistributionPoint);
+            var d = await DownloadCrl(crlDistributionPoints.CrlDistributionPoint);
+            logger.LogDebug("Done DownloadCrl");
+            return d;
         }
 
         public async Task<Crl> DownloadCrl(string crlDistributionPoint)
         {
+            logger.LogDebug("DownloadCrl");
             var crl = await _httpCrlDownloader.DownloadAsync(crlDistributionPoint);
             if (crl == null)
             {
-                throw new InvalidCrlException("The Crl could not be retrieved for url: " + crlDistributionPoint);
+                var e = new InvalidCrlException("The Crl could not be retrieved for url: " + crlDistributionPoint);
+                logger.LogError(e, "");
+                throw e;
             }
 
             if (await crl.IsPartial())
             {
-                throw new InvalidCrlException("Crl was downloaded successfully, but is not a partial CRL, not a full CRL" + crlDistributionPoint);
+                var e = new InvalidCrlException("Crl was downloaded successfully, but is not a partial CRL, not a full CRL" + crlDistributionPoint);
+                logger.LogError(e, "");
+                throw e;
             }
+            logger.LogDebug("Done DownloadCrl");
             return crl;
         }
     }

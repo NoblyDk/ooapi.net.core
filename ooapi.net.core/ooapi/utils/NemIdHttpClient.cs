@@ -1,4 +1,4 @@
-/*
+﻿/*
     Copyright 2010 DanID
 
     This file is part of OpenOcesAPI.
@@ -23,33 +23,30 @@
     @author statement below.
 */
 
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using org.openoces.ooapi.utils;
+using System.Net.Http;
+using System.Threading.Tasks;
 
-namespace org.openoces.ooapi.validation
+namespace org.openoces.ooapi.utils
 {
-    public class HttpCrlDownloader : IHttpCrlDownloader
+    public class NemIdHttpClient : INemIdHttpClient
     {
-        private readonly ILogger<HttpCrlDownloader> logger;
-        private readonly TimeService _timeService;
-        private readonly INemIdHttpClient _httpClient;
-        private readonly IX509CrlVerifyImpl _x509CrlVerifyImpl;
+        private readonly ILogger<NemIdHttpClient> logger;
+        private readonly HttpClient httpclient;
 
-        public HttpCrlDownloader(ILogger<HttpCrlDownloader> logger, TimeService timeService, INemIdHttpClient httpClient, IX509CrlVerifyImpl x509CrlVerifyImpl)
+        public NemIdHttpClient(ILogger<NemIdHttpClient> logger, HttpClient httpclient)
         {
             this.logger = logger;
-            _timeService = timeService;
-            _httpClient = httpClient;
-            _x509CrlVerifyImpl = x509CrlVerifyImpl;
+            this.httpclient = httpclient;
         }
-        public virtual async Task<Crl> DownloadAsync(string location)
+        public async Task<byte[]> Download(string location)
         {
-            logger.LogDebug("DownloadAsync");
-            var d = await _httpClient.Download(location);
-            var crl = new Crl(d, _timeService, _x509CrlVerifyImpl);
-            logger.LogDebug("Done DownloadAsync");
-            return crl;
+            logger.LogDebug($"Downloading bytes from {location}");
+            var response = await httpclient.GetAsync(location);
+            response.EnsureSuccessStatusCode();
+            var bytes = await response.Content.ReadAsByteArrayAsync();
+            logger.LogDebug($"Done Downloading bytes from {location}");
+            return bytes;                
         }
     }
 }

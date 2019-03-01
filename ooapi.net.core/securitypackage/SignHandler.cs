@@ -32,7 +32,7 @@ using org.openoces.ooapi.validation;
 using org.openoces.serviceprovider;
 using org.openoces.ooapi.certificate;
 using Org.BouncyCastle.Crypto.Digests;
-
+using Microsoft.Extensions.Logging;
 
 namespace org.openoces.securitypackage
 {
@@ -41,12 +41,14 @@ namespace org.openoces.securitypackage
     /// </summary>
     public class SignHandler : ISignHandler
     {
+        private readonly ILogger<SignHandler> logger;
         private readonly IServiceProviderSetup _serviceProviderSetup;
         private readonly IChallengeVerifier _challengeVerifier;
         private readonly IOpensignSignatureFactory _opensignSignatureFactory;
 
-        public SignHandler(IServiceProviderSetup serviceProviderSetup, IChallengeVerifier challengeVerifier, IOpensignSignatureFactory opensignSignatureFactory)
+        public SignHandler(ILogger<SignHandler> logger, IServiceProviderSetup serviceProviderSetup, IChallengeVerifier challengeVerifier, IOpensignSignatureFactory opensignSignatureFactory)
         {
+            this.logger = logger;
             _serviceProviderSetup = serviceProviderSetup;
             _challengeVerifier = challengeVerifier;
             _opensignSignatureFactory = opensignSignatureFactory;
@@ -62,33 +64,45 @@ namespace org.openoces.securitypackage
         /// <returns>true if the signed text matches the agreement parameter</returns>
         /// <throws>AppletException in case the applet returned an error code.</throws>
         public async Task<SignatureValidationStatus> ValidateSignatureAgainstAgreement(string loginData, string agreement, string stylesheet, string challenge, string logonto)
-        {
+        {           
             var errorCodeChecker = new ErrorCodeChecker();
             if (await errorCodeChecker.HasError(loginData))
             {
                 throw new AppletException(await errorCodeChecker.ExtractError(loginData));
             }
+            logger.LogDebug("CreateOpensignSignature");
             var opensignSignature = await CreateOpensignSignature(await Base64Decode(loginData));
+            logger.LogDebug("Done CreateOpensignSignature");
+            logger.LogDebug("ValidateSignatureParameters");
             await ValidateSignatureParameters(opensignSignature, challenge, logonto);
+            logger.LogDebug("Done ValidateSignatureParameters");
+            logger.LogDebug("EncodeSignature");
             var encodedSignature = await EncodeSignature(opensignSignature);
-
+            logger.LogDebug("Done EncodeSignature");
             var certificate = opensignSignature.SigningCertificate;
+            logger.LogDebug("ValidityStatus");
             CertificateStatus status = await certificate.ValidityStatus();
+            logger.LogDebug("Done ValidityStatus");
+            logger.LogDebug("IsRevoked");
             if (await _serviceProviderSetup.CurrentChecker.IsRevoked(certificate))
             {
                 status = CertificateStatus.Revoked;
             }
-
+            logger.LogDebug("Done IsRevoked");
+            logger.LogDebug("SignatureMatches");
             var signatureMatches = await SignatureMatches(encodedSignature, agreement, stylesheet, opensignSignature);
+            logger.LogDebug("Done SignatureMatches");
+            logger.LogDebug("GetSignatureProperty");
             SignatureProperty ruidProperty = await GetSignatureProperty(opensignSignature, "rememberUseridToken");
+            logger.LogDebug("Done GetSignatureProperty");
             string ruidToken = (ruidProperty == null ? null : ruidProperty.Value);
             return new SignatureValidationStatus(opensignSignature, status, signatureMatches, ruidToken);
         }
 
         private Task<Boolean> SignatureMatches(string encodedSignature, string encodedAgreement, string signTextTransformation, OpensignSignature opensignSignature)
-        {
+        {          
             if (!encodedAgreement.Equals(encodedSignature))
-            {
+            {               
                 return Task.FromResult(false);
             }
 
@@ -106,10 +120,9 @@ namespace org.openoces.securitypackage
                 digester.BlockUpdate(stylesheetBytes, 0, stylesheetBytes.Length);
                 byte[] result = new byte[digester.GetDigestSize()];
                 digester.DoFinal(result, 0);
-                var calculatedDigest = Convert.ToBase64String(result);
-
+                var calculatedDigest = Convert.ToBase64String(result);             
                 return Task.FromResult(stylesheetDigest.Equals(calculatedDigest));
-            }
+            }         
             return Task.FromResult(true);
         }
 
@@ -121,35 +134,46 @@ namespace org.openoces.securitypackage
 
         public async Task<SignatureValidationStatus> validateSignatureAgainstAgreementPDF(String loginData, String encodedAgreement, String challenge, String logonto)
         {
-		    var errorCodeChecker = new ErrorCodeChecker();
+            var errorCodeChecker = new ErrorCodeChecker();
             if (await errorCodeChecker.HasError(loginData))
             {
                 throw new AppletException(await errorCodeChecker.ExtractError(loginData));
             }
+            logger.LogDebug("CreateOpensignSignature");
             var opensignSignature = await CreateOpensignSignature(await Base64PDFDecode(loginData));
+            logger.LogDebug("Done CreateOpensignSignature");
+            logger.LogDebug("ValidateChallenge");
             await ValidateChallenge(opensignSignature, challenge);
-            
+            logger.LogDebug("Done ValidateChallenge");
             if (logonto != null)
             {
-               await ValidateLogonto(opensignSignature, logonto);
+                logger.LogDebug("ValidateLogonto");
+                await ValidateLogonto(opensignSignature, logonto);
+                logger.LogDebug("Done ValidateLogonto");
             }
 
-            String encodedSignature = await Base64Encode(opensignSignature.SignedDocument.SignedContent);      
+            String encodedSignature = await Base64Encode(opensignSignature.SignedDocument.SignedContent);
 
             var certificate = opensignSignature.SigningCertificate;
+            logger.LogDebug("ValidityStatus");
             CertificateStatus status = await certificate.ValidityStatus();
+            logger.LogDebug("Done ValidityStatus");
+            logger.LogDebug("IsRevoked");
             if (await _serviceProviderSetup.CurrentChecker.IsRevoked(certificate))
             {
                 status = CertificateStatus.Revoked;
             }
-
+            logger.LogDebug("Done IsRevoked");
+            logger.LogDebug("SignatureMatches");
             var signatureMatches = await SignatureMatches(encodedSignature, encodedAgreement, null, opensignSignature);
-
+            logger.LogDebug("Done SignatureMatches");
             //@FIXME HER MANGLER CHECK AF ATTACHMENTS !
+            logger.LogDebug("GetSignatureProperty");
             SignatureProperty ruidProperty = await GetSignatureProperty(opensignSignature, "rememberUseridToken");
+            logger.LogDebug("Done GetSignatureProperty");
             string ruidToken = (ruidProperty == null ? null : ruidProperty.Value);
             return new SignatureValidationStatus(opensignSignature, status, signatureMatches, ruidToken);
-	    }
+        }
 
         public Task<string> Base64Encode(string text)
         {
@@ -164,8 +188,11 @@ namespace org.openoces.securitypackage
 
         public Task<string> Base64Decode(string s)
         {
+            logger.LogDebug("Base64Decode");
             var bytes = Convert.FromBase64String(s);
-            return Task.FromResult(Encoding.UTF8.GetString(bytes));
+            var resultString = Encoding.UTF8.GetString(bytes);
+            logger.LogDebug("Done Base64Decode");
+            return Task.FromResult(resultString);
         }
 
         public Task<string> Base64PDFDecode(string s)
@@ -176,21 +203,27 @@ namespace org.openoces.securitypackage
 
         private async Task<OpensignSignature> CreateOpensignSignature(string loginData)
         {
+            logger.LogDebug("GenerateOpensignSignature");
             var abstractSignature = await _opensignSignatureFactory.GenerateOpensignSignature(loginData);
+            logger.LogDebug("Done GenerateOpensignSignature");
             if (!(abstractSignature is OpensignSignature))
             {
                 throw new ArgumentException("argument of type " + abstractSignature.GetType() + " is not valid output from the sign applet");
             }
+            logger.LogDebug("VerifySignature");
             await VerifySignature(abstractSignature);
+            logger.LogDebug("Done VerifySignature");
             return (OpensignSignature)abstractSignature;
         }
 
         private async Task VerifySignature(OpensignAbstractSignature signature)
         {
+            logger.LogDebug("Verify");
             if (!await signature.Verify())
             {
                 throw new ArgumentException("sign signature is not valid");
             }
+            logger.LogDebug("Done Verify");
         }
 
         private Task<string> EncodeSignature(OpensignSignature opensignSignature)
@@ -200,27 +233,37 @@ namespace org.openoces.securitypackage
 
         private async Task ValidateSignatureParameters(OpensignSignature opensignSignature, string challenge, string logonto)
         {
+            logger.LogDebug("ValidateChallenge");
             await ValidateChallenge(opensignSignature, challenge);
+            logger.LogDebug("Done ValidateChallenge");
+            logger.LogDebug("ValidateVisibleToSignerForSignText");
             await ValidateVisibleToSignerForSignText(opensignSignature);
+            logger.LogDebug("Done ValidateVisibleToSignerForSignText");
             if (logonto != null)
             {
+                logger.LogDebug("ValidateLogonto");
                 await ValidateLogonto(opensignSignature, logonto);
+                logger.LogDebug("Done ValidateLogonto");
             }
         }
 
         private async Task ValidateChallenge(OpensignSignature opensignSignature, string challenge)
         {
+            logger.LogDebug("VerifyChallenge");
             await _challengeVerifier.VerifyChallenge(opensignSignature, challenge);
+            logger.LogDebug("Done VerifyChallenge");
         }
 
         private async Task ValidateVisibleToSignerForSignText(OpensignSignature signature)
         {
             SignatureProperty signtextProperty = signature.SignatureProperties["signtext"];
+            logger.LogDebug("IsNotSignedXmlDocument");
             if (await IsNotSignedXmlDocument(signature) && !signtextProperty.VisibleToSigner)
             {
                 throw new ServiceProviderException("Invalid sign signature - the parameter signtext in the signature " +
                     "must have the attribute visibleToSigner set to true");
             }
+            logger.LogDebug("Done IsNotSignedXmlDocument");
         }
 
         private Task<bool> IsNotSignedXmlDocument(OpensignSignature opensignSignature)
@@ -230,9 +273,12 @@ namespace org.openoces.securitypackage
 
         private async Task ValidateLogonto(OpensignSignature signature, string logonto)
         {
+            logger.LogDebug("GetSignatureProperty");
             SignatureProperty logontoProperty = await GetSignatureProperty(signature, "logonto");
+            logger.LogDebug("Done GetSignatureProperty");
+            logger.LogDebug("GetSignatureProperty");
             SignatureProperty requestIssuerProperty = await GetSignatureProperty(signature, "RequestIssuer");
-
+            logger.LogDebug("Done GetSignatureProperty");
             if (logontoProperty != null && requestIssuerProperty != null)
             {
                 throw new InvalidOperationException("Invalid signature logonto and RequestIssuer parameters cannot both be set");

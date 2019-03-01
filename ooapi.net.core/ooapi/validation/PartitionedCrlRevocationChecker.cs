@@ -39,7 +39,7 @@ namespace org.openoces.ooapi.validation
         private readonly ICachedLdapCrlDownloader _cachedLdapCrlDownloader;
         private readonly ICrlDistributionPointsExtractor _crlDistributionPointsExtractor;
 
-        PartitionedCrlRevocationChecker(IRootCertificates rootCertificates, ICachedLdapCrlDownloader cachedLdapCrlDownloader, ICrlDistributionPointsExtractor crlDistributionPointsExtractor)
+        public PartitionedCrlRevocationChecker(IRootCertificates rootCertificates, ICachedLdapCrlDownloader cachedLdapCrlDownloader, ICrlDistributionPointsExtractor crlDistributionPointsExtractor)
         {
             _rootCertificates = rootCertificates;
             _cachedLdapCrlDownloader = cachedLdapCrlDownloader;

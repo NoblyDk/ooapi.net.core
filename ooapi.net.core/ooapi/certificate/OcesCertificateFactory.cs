@@ -49,7 +49,7 @@ namespace org.openoces.ooapi.certificate
         private readonly ILdapCrlDownloader _ldapCrlDownloader;
         private readonly IRootCertificates _rootCertificates;
         private readonly IX509CertificatePropertyExtrator _x509CertificatePropertyExtrator;
-        private readonly IHttpClient _httpClient;
+        private readonly INemIdHttpClient _httpClient;
         private readonly IProperties _properties;
         private readonly IServiceProviderSetup _serviceProviderSetup;
         public OcesCertificateFactory(
@@ -58,7 +58,7 @@ namespace org.openoces.ooapi.certificate
             ILdapCrlDownloader ldapCrlDownloader, 
             IRootCertificates rootCertificates,
             IX509CertificatePropertyExtrator x509CertificatePropertyExtrator,
-            IHttpClient httpClient,
+            INemIdHttpClient httpClient,
             IProperties properties,
             IServiceProviderSetup serviceProviderSetup)
         {
